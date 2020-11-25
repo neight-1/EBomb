@@ -16,7 +16,7 @@ except ModuleNotFoundError:
 	from fake_useragent import UserAgent
 
 cmd('clear')
-
+print('\033[0m')
 cmd('figlet EBomb')
 print('Спаминг сообщеними на Email. - NIKDISSV')
 print(f'Найдено {len(service)} сервисов для спама.')
@@ -40,10 +40,13 @@ def send(url):
 		color = '\033[0m'
 		try:
 			ptype = url.split('/')[0][0:-1]
+			if ptype == None:
+				ptype = 'http'
 			if useproxy:
 				proxy = (requests.get(f"https://www.proxyscan.io/api/proxy?format=txt&type={ptype}").content.decode('utf-8').split()[0], ' с использованием прокси - ')
 			else:
 				proxy = ('', '')
+			
 			proxies = {ptype: proxy[0]}
 			r = requests.get(url.format(spam_id), headers=headers, proxies=proxies)
 			if r.status_code > 300:
