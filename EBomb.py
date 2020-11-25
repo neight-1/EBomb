@@ -16,7 +16,7 @@ except ModuleNotFoundError:
 	from fake_useragent import UserAgent
 
 cmd('clear')
-print('\033[0m')
+print('\033[1m')
 cmd('figlet EBomb')
 print('Спаминг сообщеними на Email. - NIKDISSV')
 print(f'Найдено {len(service)} сервисов для спама.')
