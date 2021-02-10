@@ -14,9 +14,15 @@ from fake_useragent import UserAgent  # pip install fake_useragent
 
 
 class EBomb:
-    def __init__(self):
-        self.Emails = self.Get_Emails()
-        self.WPx = self.With_Proxies()
+    def __init__(self, Emails=None, WPx=None):
+        if not Emails:
+            self.Emails = self.Get_Emails()
+        else:
+            self.Emails = Emails
+        if not WPx:
+            self.WPx = self.With_Proxies()
+        else:
+            self.WPx = WPx
         self.Make_Threads()
 
 
@@ -95,4 +101,13 @@ class EBomb:
         Entry = input("Введите почты (Через пробелы): ").split()
         return Entry
 
-EBomb()
+kw = {}
+if len(argv) >= 2:
+    if "-x" in argv:
+        kw["WPx"] = True
+    if "-a" in argv:
+        kw["Emails"] = argv[argv.index("-a")+1:]
+        if "-x" in argv:
+            kw["Emails"].remove("-x")
+print(kw)
+EBomb(**kw)
