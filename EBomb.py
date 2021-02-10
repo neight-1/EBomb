@@ -109,5 +109,5 @@ if len(argv) >= 2:
         kw["Emails"] = argv[argv.index("-a")+1:]
         if "-x" in argv:
             kw["Emails"].remove("-x")
-print(kw)
+
 EBomb(**kw)
