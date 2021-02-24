@@ -1,4 +1,4 @@
-SERVS = (
+SERVS = [
     "http://www.wplug.org/mailman/subscribe/wplug-jobs?email=%s&fullname=&pw=123456789&pw-conf=123456789&language=en&digest=0&email-button=Subscribe",
     "http://www.open-std.org/mailman/subscribe/ub?email=%s&fullname=&pw=123456789&pw-conf=123456789&language=en&digest=0&email-button=Subscribe",
     "http://mail.etree.org/mailman/subscribe/etrade?email=%s&fullname=&pw=123456789&pw-conf=123456789&language=en&digest=0&email-button=Subscribe",
@@ -91,4 +91,4 @@ SERVS = (
     "http://lists.umanitoba.ca/mailman/subscribe/student-weekly-bannatyne?email=%s&fullname=&pw=123456789&pw-conf=123456789&language=en&digest=0&email-button=Subscribe",
     "http://lists.umanitoba.ca/mailman/subscribe/student-weekly-fort-garry?email=%s&fullname=&pw=123456789&pw-conf=123456789&language=en&digest=0&email-button=Subscribe",
 
-)
+]
