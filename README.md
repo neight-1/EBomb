@@ -12,3 +12,7 @@
 > 
 > python3 main.py -h
 >
+
+### To update:
+
+> git pull

