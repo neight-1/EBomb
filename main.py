@@ -16,8 +16,10 @@ __banner__ = r"""
  |______|____/ \___/|_| |_| |_|_.__/
  """
 
-with open("servises.txt", "r") as f:
-    SERVS = sorted(f.read().split("\n"))
+servicesFile = "services.txt"
+
+with open(servicesFile, "r") as f:
+    SERVS = sorted((i.split() for i in f.read().split("\n")))
 
 class main:
     
@@ -103,10 +105,8 @@ class main:
     
                 ip = None
                 ip_col = "\033[32m"
-    
-                method = "GET"
                 while True:
-                    req = Request(url % email, headers=ua, method=method)
+                    req = Request(url[0] % email, headers=ua, method=url[1])
                     if self.proxy:
                         ip = choice(self.proxies)
                         req.set_proxy(ip, type="http")
@@ -117,8 +117,8 @@ class main:
                     except Exception as Error:
                         if hasattr(Error, "getcode"):
                             code = Error.getcode()
-                            if method == "GET":
-                                method = "POST"
+                            if url[1] == "GET":
+                                url[1] = "POST"
                                 continue
                         else:
                             code = str(Error)
@@ -136,9 +136,9 @@ class main:
                     elif 200 <= code <= 400:
                         code_col = "\033[32m"
                 email_t = email.split("@")[0]
-                url_t = url.split("/")[2].split(".")[1]
+                url_t = url[0].split("/")[2].split(".")[1]
                 print(
-                    f"{code_col}{code}\033[0m | {email_t} | {serv_col}{method} {url_t}\033[0m",
+                    f"{code_col}{code}\033[0m | {email_t} | {serv_col}{url[1]} {url_t}\033[0m",
                     end="")
                 if ip:
                     print(f" | {ip_col}{ip}\033[0m", end="")
@@ -160,8 +160,8 @@ class main:
         self.proxies = list(set(scanner.get_proxies(count=count, type="http")))
 
     def end(self):
-        with open("servises.txt", "w") as f:
-            f.write("\n".join(SERVS))
+        with open(servicesFile, "w") as f:
+            f.write("\n".join((" ".join(i) for i in SERVS)))
 
 
 if __name__ == "__main__":
